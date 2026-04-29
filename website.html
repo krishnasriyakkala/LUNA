@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YUKT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+* {margin:0;padding:0;box-sizing:border-box;font-family:'Inter';}
+
+body {
+    background:#f9fafb;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.app {
+    width:360px;
+    height:640px;
+    background:white;
+    border-radius:25px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+}
+
+.header {
+    padding:15px;
+    text-align:center;
+    font-weight:600;
+    border-bottom:1px solid #eee;
+}
+
+.page {display:none; padding:20px; overflow:auto; flex:1;}
+
+input, textarea {
+    width:100%; padding:10px; margin:8px 0;
+    border:1px solid #ddd; border-radius:10px;
+}
+
+button {
+    width:100%; padding:10px; margin-top:8px;
+    border:none; border-radius:10px;
+    background:#111; color:white;
+}
+
+.menu button {
+    background:#f3f4f6; color:#111;
+}
+
+.card {
+    background:#f3f4f6;
+    padding:10px;
+    border-radius:10px;
+    margin-top:8px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.back {background:none;color:#555;}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+<div class="header">LUNA</div>
+
+<!-- LOGIN -->
+<div id="login" class="page">
+<h3>Login</h3>
+<input id="loginEmail" placeholder="Email">
+<input id="loginPass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p><a href="#" onclick="show('signup')">Create account</a></p>
+</div>
+
+<!-- SIGNUP -->
+<div id="signup" class="page">
+<h3>Signup</h3>
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="signup()">Create</button>
+<button class="back" onclick="show('login')">Back</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+<h3>Dashboard</h3>
+<div class="menu">
+<button onclick="show('profile')">Profile</button>
+<button onclick="show('products')">Products</button>
+<button onclick="show('diary')">Diary</button>
+<button onclick="show('tracker')">Tracker</button>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="page">
+<h3>Profile</h3>
+<input id="name" placeholder="Name">
+<textarea id="bio" placeholder="Bio"></textarea>
+<button onclick="saveProfile()">Save</button>
+<button class="back" onclick="show('dashboard')">Back</button>
+</div>
+
+<!-- PRODUCTS -->
+<div id="products" class="page">
+<h3>Products</h3>
+<input id="productName" placeholder="Product name">
+<button onclick="addProduct()">Add</button>
+<div id="productList"></div>
+<button class="back" onclick="show('dashboard')">Back</button>
+</div>
+
+<!-- DIARY -->
+<div id="diary" class="page">
+<h3>Diary</h3>
+<textarea id="noteText"></textarea>
+<button onclick="addNote()">Save</button>
+<div id="notesList"></div>
+<button class="back" onclick="show('dashboard')">Back</button>
+</div>
+
+<!-- TRACKER -->
+<div id="tracker" class="page">
+<h3>Routine</h3>
+<label><input type="checkbox" id="c1" onchange="saveTracker()"> Face Wash</label><br>
+<label><input type="checkbox" id="c2" onchange="saveTracker()"> Serum</label><br>
+<label><input type="checkbox" id="c3" onchange="saveTracker()"> Moisturizer</label><br>
+<button class="back" onclick="show('dashboard')">Back</button>
+</div>
+
+</div>
+
+<script>
+
+/* NAV */
+function show(p){
+document.querySelectorAll(".page").forEach(e=>e.style.display="none");
+document.getElementById(p).style.display="block";
+}
+
+/* AUTH */
+function signup(){
+let email=emailEl.value, pass=passEl.value;
+localStorage.setItem("user",JSON.stringify({email,pass}));
+show("login");
+}
+
+function login(){
+let u=JSON.parse(localStorage.getItem("user"));
+if(u && loginEmail.value===u.email && loginPass.value===u.pass){
+show("dashboard");
+} else alert("Invalid");
+}
+
+function logout(){
+show("login");
+}
+
+/* PROFILE */
+function saveProfile(){
+localStorage.setItem("profile",JSON.stringify({
+name:name.value, bio:bio.value
+}));
+}
+
+/* LOAD PROFILE */
+function loadProfile(){
+let p=JSON.parse(localStorage.getItem("profile"));
+if(p){
+name.value=p.name||"";
+bio.value=p.bio||"";
+}
+}
+
+/* PRODUCTS */
+let products=JSON.parse(localStorage.getItem("products"))||[];
+
+function addProduct(){
+products.push(productName.value);
+localStorage.setItem("products",JSON.stringify(products));
+displayProducts();
+}
+
+function displayProducts(){
+productList.innerHTML="";
+products.forEach((p,i)=>{
+productList.innerHTML+=`
+<div class="card">
+${p}
+<button onclick="delProduct(${i})">x</button>
+</div>`;
+});
+}
+
+function delProduct(i){
+products.splice(i,1);
+localStorage.setItem("products",JSON.stringify(products));
+displayProducts();
+}
+
+/* DIARY */
+let notes=JSON.parse(localStorage.getItem("notes"))||[];
+
+function addNote(){
+notes.push(noteText.value);
+localStorage.setItem("notes",JSON.stringify(notes));
+displayNotes();
+}
+
+function displayNotes(){
+notesList.innerHTML="";
+notes.forEach((n,i)=>{
+notesList.innerHTML+=`
+<div class="card">
+${n}
+<button onclick="delNote(${i})">x</button>
+</div>`;
+});
+}
+
+function delNote(i){
+notes.splice(i,1);
+localStorage.setItem("notes",JSON.stringify(notes));
+displayNotes();
+}
+
+/* TRACKER */
+function saveTracker(){
+localStorage.setItem("tracker",JSON.stringify({
+c1:c1.checked,
+c2:c2.checked,
+c3:c3.checked
+}));
+}
+
+function loadTracker(){
+let t=JSON.parse(localStorage.getItem("tracker"));
+if(t){
+c1.checked=t.c1;
+c2.checked=t.c2;
+c3.checked=t.c3;
+}
+}
+
+/* INIT */
+window.onload=function(){
+show("login");
+displayProducts();
+displayNotes();
+loadProfile();
+loadTracker();
+}
+
+/* SHORTCUTS */
+let emailEl=document.getElementById("email");
+let passEl=document.getElementById("pass");
+
+</script>
+
+</body>
+</html>
